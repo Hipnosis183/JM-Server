@@ -1,0 +1,2 @@
+gcc -Os mongoose/mongoose.c mjson/mjson.c ini/ini.c server.c -static-libgcc -static-libstdc++ -lpthread -L./lmdb -llmdb -lws2_32 -o server.exe
+gcc -Os ini/ini.c hook.c -shared -static-libgcc -static-libstdc++ -lpthread -L./minhook -lminhook -lwininet -o server.dll
