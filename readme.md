@@ -2,35 +2,61 @@
 
 ## JM-Server
 
-**JM-Server** is a server emulator for ***Jewelry Master***, an online arcade puzzle game developed by ***Arika*** in 2006. This project served as a gameplay test for the next game in the series, ***Jewelry Master Twinkle***. The original service ceased operations around 2011, and since then it remained unplayable, until now.
+**JM-Server** is a server emulator for ***Jewelry Master***, an online arcade puzzle game developed by ***Arika*** in 2006; the original service ended around 2011. This server reimplementation allows you to play the game again, aiming to accurately replicate how the original server would've behaved.
 
-The server functionality has been fully reverse engineered and reimplemented in two different ways:
+There are two different implementations available, continue reading below to see which one you should use.
 
-- A **NodeJS server**, mimicking how the original server worked, where people can connect to from the client over the internet.
-- An **embedded C server**, as a portable solution that doesn't require any external server nor database initialization, while maintaining the full functionality and behaviour of the original.
+### Embedded Server
 
-Both implement complete user and rankings/leaderboards management, including replays storage. In addition, some options are available to further customise the server behaviour.
+The **embedded** version is provided mainly for local/online play, although it can still be used to host large-scale servers. The server was written from the ground up in **C**, aiming for performance, portability and small size. The only dependencies are **LMDB** for the database and **MinHook** for patching the game.
 
-### NodeJS Server
-The **NodeJS** version is meant to be used for hosting servers over the internet, although it can still be used to connect and play locally. As it uses proper server tech and a robust database engine (**MongoDB**), it's more suitable to handle multiple connections and big amounts of data.
+This version allows to host a server, connect to a server, or both at the same time. It also works as a loader that takes care of all the modifications needed to make the game work with the custom server.
 
-To setup the server you'll need **Node**, **NPM** and **MongoDB Server**, and then install the dependencies with `npm install`. Use `node app.js` to run the server, or if you're on Windows, run the included `start.bat`, which also initializes the Mongo service. Replay files are stored in the server root directory, under the `rep` folder.
+#### Setup
 
-To change the server options, you'll have to modify the constants under `app.js` (connection) and `service.js` (users). To connect to a Node server from the client, add an entry in the *hosts file* redirecting `hg.arika.co.jp` to the server address, or read the section below.
+1. Download and unpack the server files in the game folder.
+2. Optional: change the server settings inside `server.ini`.
+3. Run `server.exe`.
 
-### C Server
-The **C** solution is provided for local and portable use, where by just running the executable, it initializes a minimal **Mongoose** embedded server with a light and performant **LMDB** database, at the same time it hooks the networking functions of the game to redirect the internal API calls to this local server.
+At default settings, a server will get started on `localhost`, then the game client will open and connect to it automatically. When the game process finalizes, the server will also close.
 
-This version doesn't require any dependencies, just place the files in the game folder and run the executable. The options can be changed in the `server.ini` file, but the default configuration is already the ideal for local play, and it will save both the database and replays under the `server` folder. These options are:
+#### Options
 
-- **ServerMode**: Select the way the server is going to work.
-- **HostName**: Select server address to connect to or host from.
-- **HookDLL**: Enable/disable networking functions hooking.
-- **Register**: Allow unregistered users to be registered at the login screen.
-- **MultiScores**: Allow users to have mutiple scores (and replays) in the global rankings.
-- **NoScores**: Disable scores and replays saving.
+Options can be modified inside the file `server.ini`. Additional details can be found on the file itself.
 
-The different server modes allow you to play locally, connect to a server online, and host your own server over local or wide network. The modes affect the purpose of the `HostName` property value. All of this information can be found in detail inside the `server.ini` file. This also works as an alternative to modifying the *hosts file* manually.
+- `ServerMode`: Defines the server behavior.
+- `ServerHost`: Defines the server host.
+- `Register`: Allows unregistered users to be registered at the login screen.
+- `MultiScores`: Allows users to have mutiple scores/replays in the global rankings.
+- `NoticeMode`: Defines the notice message text.
 
-### Building
-To build the server I used **GCC** (**MinGW**), although any compiler will do with some extra configuration. The files can be compiled by running `build.bat`, make sure to point to a 32-bit GCC binary. It can also be compiled for 64-bit, but you'll need to replace the included libraries appropriately.
+#### Build
+
+To build the server files simply run `build.bat`; it'll generate the files `server.exe` and `server.dll`. Make sure to edit the script variable `gcc` to point to a valid 32-bit **GCC** install path. Additional compile flags are available:
+
+- `-xp`: Builds a **Windows XP** compatible binary. Use the normal build for **Vista** onwards.
+- `-debug`: Builds a debuggable binary, disabling all compiler optimizations.
+- `-converter`: Builds a program that converts server data from an older version to be compatible with the current one. Also supports the `-debug` flag.
+
+### General Server
+
+The **general** version provides a more traditional web server approach, offering a robust, scalable and more stable alternative, making it more suitable to handle large number of connections and amounts of data. The server uses **Node.js** for the engine and **MongoDB** for the database.
+
+This version only hosts the server. In order to play, the embedded server in client mode is required, as it also works as a loader/patcher.
+
+#### Setup
+
+1. Download and install **Node.js**, **npm** and **MongoDB**.
+2. Install server dependencies with `npm install`.
+3. Run the server with `node main`.
+
+#### Options
+
+Options can be modified inside the file `server/options.js`; requires a server restart.
+
+- `Register`: Allows unregistered users to be registered at the login screen.
+- `MultiScores`: Allows users to have mutiple scores/replays in the global rankings.
+
+## Notes
+
+- Replay files are not compatible between game versions (i.e. `1.32` -> `1.40`).
